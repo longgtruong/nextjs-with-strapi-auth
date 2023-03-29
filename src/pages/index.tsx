@@ -21,12 +21,24 @@ export default function Home() {
               <h1 className="text-xl leading-tight tracking-tight md:text-2xl text-white">
                 Logged in as
               </h1>
-              <h1 className="text-xl leading-tight tracking-tight md:text-2xl text-white">
-                {me.displayName}@<strong>{me.username}</strong>
-                <br />
-                from {me.country?.name}{" "}
-                {getUnicodeFlagIcon(me.country?.code ?? "US")}
-              </h1>
+              <div className="flex flex-col items-center text-center gap-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  className="rounded-full h-32 w-32"
+                  src={
+                    me.profilePhoto
+                      ? me.profilePhoto.url
+                      : "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541"
+                  }
+                  alt="profile"
+                />
+                <h1 className="text-xl leading-tight tracking-tight md:text-2xl text-white">
+                  {me.displayName}@<strong>{me.username}</strong>
+                  <br />
+                  from {me.country?.name}{" "}
+                  {getUnicodeFlagIcon(me.country?.code ?? "US")}
+                </h1>
+              </div>
               <button
                 type="submit"
                 onClick={logout}

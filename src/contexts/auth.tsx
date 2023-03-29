@@ -8,7 +8,12 @@ import {
   useState,
 } from "react";
 import { SignUpBody } from "../pages/sign-up";
-import api, { authenticate, createAccount, getMe } from "../service/strapi";
+import api, {
+  authenticate,
+  createAccount,
+  getMe,
+  upload,
+} from "../service/strapi";
 import { setUserCookie, unsetCookie } from "../utils/cookie";
 
 type UserDataType = {
@@ -18,6 +23,17 @@ type UserDataType = {
   country?: {
     code: string;
     name: string;
+  };
+  profilePhoto?: {
+    url: string;
+    format: {
+      small: {
+        url: string;
+      };
+      thumbnail: {
+        url: string;
+      };
+    };
   };
 };
 
@@ -31,6 +47,7 @@ type AuthContextData = {
     displayName,
     password,
     country,
+    profilePhoto,
   }: SignUpBody) => Promise<void>;
   user: {
     username: string;
@@ -63,13 +80,17 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     displayName,
     password,
     country,
+    profilePhoto,
   }: SignUpBody) => {
+    const uploaded = await upload(profilePhoto);
+
     const { data } = await createAccount({
       email,
       username,
       displayName,
       password,
       country,
+      profilePhoto: uploaded?.data[0].id,
     });
     setUserCookie(data);
     router.push("/");

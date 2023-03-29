@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import countryList from "react-select-country-list";
 import PageLayout from "../components/Layout";
 import { useAuth } from "../contexts/auth";
+import { upload } from "../service/strapi";
 
 export type SignUpBody = {
   username: string;
@@ -13,11 +14,13 @@ export type SignUpBody = {
     name: string;
   };
   displayName: string;
+  profilePhoto?: File | string;
 };
 
 export default function SignUp() {
   const router = useRouter();
   const { register } = useAuth();
+  const [photo, setPhoto] = useState<string | ArrayBuffer | null>(null);
   const [registerData, setRegisterData] = useState<SignUpBody>({
     username: "",
     email: "",
@@ -29,6 +32,22 @@ export default function SignUp() {
     },
   });
   const options = useMemo(() => countryList().getData(), []);
+
+  const handleChangePhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files ? e.target.files[0] : null;
+    if (files) {
+      const fileReader = new FileReader();
+      fileReader.readAsDataURL(files);
+      fileReader.addEventListener(
+        "load",
+        () => {
+          setPhoto(fileReader.result);
+        },
+        false
+      );
+      setRegisterData({ ...registerData, profilePhoto: files });
+    }
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -54,7 +73,7 @@ export default function SignUp() {
   return (
     <PageLayout>
       <section className="bg-gray-900">
-        <div className="h-screen flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
+        <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
           <div className="w-full rounded-lg shadow border md:mt-0 sm:max-w-md xl:p-0 bg-gray-800 border-gray-700">
             <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
               <h1 className="text-xl font-bold leading-tight tracking-tight md:text-2xl text-white">
@@ -142,6 +161,49 @@ export default function SignUp() {
                   ))}
                 </select>
               </div>
+              <div className="items-center justify-center w-full">
+                <label
+                  htmlFor="country"
+                  className="block mb-2 text-sm font-medium text-white"
+                >
+                  Profile photo
+                </label>
+                <label
+                  htmlFor="dropzone-file"
+                  className="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-transparent"
+                >
+                  <div className="flex flex-col items-center justify-center">
+                    {photo ? (
+                      <div className="flex flex-col items-center gap-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          className="w-14 h-14 rounded-full ring-2 ring-gray-300 dark:ring-gray-500"
+                          src={photo as string}
+                          alt="profilePhoto"
+                        />
+                        <p className="mb-2 text-sm text-white">
+                          <span className="font-semibold">
+                            Click to upload another photo
+                          </span>
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="mb-2 text-sm text-white">
+                        <span className="font-semibold">Click to upload</span>{" "}
+                        or drag and drop
+                      </p>
+                    )}
+                  </div>
+                  <input
+                    onChange={handleChangePhoto}
+                    accept="image/png, image/gif, image/jpeg"
+                    id="dropzone-file"
+                    type="file"
+                    className="hidden"
+                  />
+                </label>
+              </div>
+
               <button
                 onClick={() => register(registerData)}
                 className="w-full bg-purple-600 hover:bg-purple-700 focus:ring-purple-800 text-white focus:ring-4 font-medium rounded-lg text-sm px-5 py-2.5 my-3 text-center"
