@@ -57,4 +57,9 @@ export async function upload(file?: File | string) {
   }
 }
 
+export async function ping() {
+  const data = await api.get("/tasks?populate=*");
+  return data;
+}
+
 export default api;
