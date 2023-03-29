@@ -7,6 +7,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import toast from "react-hot-toast";
 import { SignUpBody } from "../pages/sign-up";
 import api, {
   authenticate,
@@ -39,6 +40,7 @@ type UserDataType = {
 
 type AuthContextData = {
   isAuthenticated: boolean;
+  loading: boolean;
   login: (identifier: string, password: string) => Promise<void>;
   logout: () => void;
   register: ({
@@ -60,12 +62,20 @@ const AuthContext = createContext({} as AuthContextData);
 export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [username, setUserName] = useState<string>("");
   const [me, setMe] = useState({});
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const login = async (identifier: string, password: string) => {
-    const { data } = await authenticate({ identifier, password });
-    setUserCookie(data);
-    router.push("/");
+    try {
+      setLoading(true);
+      const { data } = await authenticate({ identifier, password });
+      setUserCookie(data);
+      setLoading(false);
+      router.push("/");
+    } catch (e: any) {
+      setLoading(false);
+      processError(e);
+    }
   };
 
   const logout = () => {
@@ -82,18 +92,24 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     country,
     profilePhoto,
   }: SignUpBody) => {
-    const uploaded = await upload(profilePhoto);
-
-    const { data } = await createAccount({
-      email,
-      username,
-      displayName,
-      password,
-      country,
-      profilePhoto: uploaded?.data[0].id,
-    });
-    setUserCookie(data);
-    router.push("/");
+    setLoading(true);
+    try {
+      const uploaded = await upload(profilePhoto);
+      const { data } = await createAccount({
+        email,
+        username,
+        displayName,
+        password,
+        country,
+        profilePhoto: uploaded?.data[0].id,
+      });
+      setUserCookie(data);
+      setLoading(false);
+      router.push("/");
+    } catch (e: any) {
+      setLoading(false);
+      processError(e);
+    }
   };
 
   useEffect(() => {
@@ -104,6 +120,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         setUserName(getCookie("username")?.toString() ?? "");
         const { data } = await getMe();
         setMe(data);
+        router.push("/");
       } else {
         if (router.pathname === "/") {
           router.push("/login");
@@ -111,11 +128,12 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       }
     }
     loadUserFromCookie();
-  }, [username, router]);
+  }, [username, router, me]);
 
   return (
     <AuthContext.Provider
       value={{
+        loading,
         isAuthenticated: username !== "",
         login,
         logout,
@@ -130,3 +148,12 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+
+export const processError = (e: any) => {
+  const errors = e.response.data;
+  if (errors.error) {
+    toast(errors.error.message);
+  } else {
+    toast("Something went wrong, please try again later.");
+  }
+};

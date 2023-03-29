@@ -1,7 +1,6 @@
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 
 export function setUserCookie(data: any) {
-  console.log(data);
   setCookie("id", data.user.id);
   setCookie("username", data.user.username);
   setCookie("jwt", data.jwt);

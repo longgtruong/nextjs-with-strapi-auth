@@ -1,9 +1,8 @@
 import { useRouter } from "next/router";
 import { useState } from "react";
+import ReactLoading from "react-loading";
 import PageLayout from "../components/Layout";
 import { useAuth } from "../contexts/auth";
-import { authenticate } from "../service/strapi";
-import { getDataFromCookie, setUserCookie } from "../utils/cookie";
 
 export default function Login() {
   const router = useRouter();
@@ -15,7 +14,11 @@ export default function Login() {
     password: "",
   });
 
-  const { login } = useAuth();
+  const { login, loading, isAuthenticated } = useAuth();
+
+  if (isAuthenticated) {
+    return;
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoginCredentials({
@@ -65,9 +68,20 @@ export default function Login() {
                 onClick={() =>
                   login(loginCredentials.identifier, loginCredentials.password)
                 }
-                className="w-full bg-purple-600 hover:bg-purple-700 focus:ring-purple-800 text-white focus:ring-4 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                disabled={loading}
+                className="flex flex-col items-center w-full bg-purple-600 hover:bg-purple-700 focus:ring-purple-800 text-white focus:ring-4 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
               >
-                Sign in
+                {!loading ? (
+                  "Sign in"
+                ) : (
+                  <ReactLoading
+                    className="text-center"
+                    type={"bubbles"}
+                    color={"white"}
+                    height={"15px"}
+                    width={"15px"}
+                  />
+                )}
               </button>
               <p className="text-sm font-light text-gray-400">
                 Don’t have an account yet?{" "}
