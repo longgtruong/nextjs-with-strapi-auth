@@ -1,4 +1,5 @@
 import axios from "axios";
+import { SignUpBody } from "../pages/sign-up";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_STRAPI_API_ENDPOINT,
@@ -19,6 +20,28 @@ export async function authenticate({
     identifier,
     password,
   });
+  return data;
+}
+
+export async function createAccount({
+  email,
+  username,
+  displayName,
+  password,
+  country,
+}: SignUpBody) {
+  const data = await api.post("/auth/local/register", {
+    email,
+    username,
+    displayName,
+    password,
+    country,
+  });
+  return data;
+}
+
+export async function getMe() {
+  const data = await api.get("/users/me");
   return data;
 }
 

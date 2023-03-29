@@ -1,11 +1,12 @@
 import { Inter } from "next/font/google";
 import PageLayout from "../components/Layout";
 import { useAuth } from "../contexts/auth";
+import getUnicodeFlagIcon from "country-flag-icons/unicode";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
-  const { isAuthenticated, logout, user } = useAuth();
+  const { isAuthenticated, logout, user, me } = useAuth();
 
   if (!isAuthenticated) {
     return;
@@ -18,7 +19,13 @@ export default function Home() {
           <div className="w-full rounded-lg shadow border md:mt-0 sm:max-w-md xl:p-0 bg-gray-800 border-gray-700">
             <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
               <h1 className="text-xl leading-tight tracking-tight md:text-2xl text-white">
-                Logged in as <strong>{user.username}</strong>
+                Logged in as
+              </h1>
+              <h1 className="text-xl leading-tight tracking-tight md:text-2xl text-white">
+                {me.displayName}@<strong>{me.username}</strong>
+                <br />
+                from {me.country?.name}{" "}
+                {getUnicodeFlagIcon(me.country?.code ?? "US")}
               </h1>
               <button
                 type="submit"
